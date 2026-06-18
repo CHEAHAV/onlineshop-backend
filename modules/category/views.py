@@ -16,7 +16,7 @@ from modules.category.schemas import *
 )
 async def create_category(
     category: CategoryModels = Depends(CategoryModels.form),
-    db: Session = Depends(get_db),
+    db      : Session        = Depends(get_db),
 ):
     # 1. Generate a unique, prefixed ID
     new_id = generate_id(db)
@@ -33,7 +33,7 @@ async def create_category(
         name_lc       = category.name_lc,
         description   = category.description,
         image         = image_filename,
-        active        = True,
+        active        = category.active
     )
     db.add(new_item)
     db.commit()
@@ -45,7 +45,7 @@ async def create_category(
         "title"  : "Category",
         "message": "Data created successfully",
         "data"   : category_response(new_item),
-        "error": {},
+        "error"  : {},
     }
 
 

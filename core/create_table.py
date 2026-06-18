@@ -40,12 +40,17 @@ def _should_alter_type(model_column, database_column: dict) -> bool:
     database_type = database_column["type"]
 
     if isinstance(model_type, String):
-        return getattr(database_type, "length", None) != model_type.length
+        return getattr(database_type, "length", None) != getattr(model_type, "length", None)
+
+    if isinstance(model_type, Numeric):
+        return (
+            getattr(database_type, "precision", None) != getattr(model_type, "precision", None)
+            or getattr(database_type, "scale", None) != getattr(model_type, "scale", None)
+        )
 
     simple_type_pairs = (
         (Boolean, "BOOLEAN"),
         (Integer, "INTEGER"),
-        (Numeric, "NUMERIC"),
         (Text, "TEXT"),
         (DateTime, "TIMESTAMP"),
         (Date, "DATE"),

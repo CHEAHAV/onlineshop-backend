@@ -1,0 +1,21 @@
+from core.db import Base
+from sqlalchemy import Column, String, Boolean, Numeric, Integer
+
+class TBL_PRODUCT(Base):
+    __tablename__ = "tbl_product"
+
+    id               = Column(String(55), primary_key= True, unique= True)
+    name             = Column(String(150))
+    name_lc          = Column(String(150))
+    rating           = Column(Numeric(5,2))
+    viewer           = Column(Integer)
+    original_price   = Column(Numeric(5,2))
+    selling_price    = Column(Numeric(5,2))
+    discount         = Column(Numeric(5,2))
+    saving_price     = Column(Numeric(5,2))
+    product_image_id = Column(String(55))
+    shipping         = Column(Numeric(5,2))
+    badge            = Column(String(100))
+    is_favorite      = Column(Boolean, default=False)
+    is_new           = Column(Boolean, default=True)
+    active           = Column(Boolean, default=True)
