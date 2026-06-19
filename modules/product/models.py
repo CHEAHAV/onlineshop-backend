@@ -19,6 +19,8 @@ class TBL_PRODUCT(Base):
     saving_price            = Column(Numeric(5,2))
     profit_price            = Column(Numeric(5,2))
     profit_percentage       = Column(Numeric(5,2))
+    total_price_in_stock    = Column(Numeric(5,2))
+    total_price_out_stock   = Column(Numeric(5,2))
     total_original_price    = Column(Numeric(5,2))
     total_selling_price     = Column(Numeric(5,2))
     total_profit_price      = Column(Numeric(5,2))

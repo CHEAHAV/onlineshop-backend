@@ -10,30 +10,32 @@ from modules.product.models import TBL_PRODUCT
 
 
 class ProductSchemas(BaseModel):
-    name                    : str | None    = None
-    name_lc                 : str | None    = None
-    product_qty             : int | None    = None
-    out_stock               : int | None    = None
-    in_stock                : int | None    = None
-    rating                  : float | None  = None
-    viewer                  : int | None    = None
-    old_price               : float | None  = None
-    original_price          : float | None  = None
-    selling_price           : float | None  = None
-    discount                : float | None  = None
-    saving_price            : float | None  = None
-    profit_price            : float | None  = None
-    profit_percentage       : float | None  = None
-    total_original_price    : float | None  = None
-    total_selling_price     : float | None  = None
-    total_profit_price      : float | None  = None
-    total_profit_percentage : float | None  = None
-    product_image_id        : str | None    = None
-    shipping                : float | None  = None
-    badge                   : str | None    = None
-    is_favorite             : bool          = False
-    is_new                  : bool          = True
-    active                  : bool          = True
+    name                    : str | None   = None
+    name_lc                 : str | None   = None
+    product_qty             : int | None   = None
+    out_stock               : int | None   = None
+    in_stock                : int | None   = None
+    rating                  : float | None = None
+    viewer                  : int | None   = None
+    old_price               : float | None = None
+    original_price          : float | None = None
+    selling_price           : float | None = None
+    discount                : float | None = None
+    saving_price            : float | None = None
+    profit_price            : float | None = None
+    profit_percentage       : float | None = None
+    total_price_in_stock    : float | None = None
+    total_price_out_stock   : float | None = None
+    total_original_price    : float | None = None
+    total_selling_price     : float | None = None
+    total_profit_price      : float | None = None
+    total_profit_percentage : float | None = None
+    product_image_id        : str | None   = None
+    shipping                : float | None = None
+    badge                   : str | None   = None
+    is_favorite             : bool         = False
+    is_new                  : bool         = True
+    active                  : bool         = True
 
 class ProductModels(ProductSchemas):
     @classmethod
@@ -60,33 +62,41 @@ class ProductModels(ProductSchemas):
         in_stock                = None
         profit_price            = None
         profit_percentage       = None
+        total_price_in_stock    = None
+        total_price_out_stock   = None
         total_original_price    = None
         total_selling_price     = None
         total_profit_price      = None
         total_profit_percentage = None
 
-        if old_price is not None and selling_price is not None:
+        if old_price is not None and selling_price is not None: 
             saving_price = old_price - selling_price
-            if old_price:
+            if old_price: 
                 discount = (saving_price / old_price) * 100
 
-        if product_qty is not None and out_stock is not None:
+        if product_qty is not None and out_stock is not None: 
             in_stock = product_qty - out_stock
 
-        if selling_price is not None and original_price is not None:
+        if selling_price is not None and original_price is not None: 
             profit_price = selling_price - original_price
-            if original_price:
+            if original_price: 
                 profit_percentage = (profit_price / original_price) * 100
 
-        if original_price is not None and product_qty is not None:
+        if original_price is not None and product_qty is not None: 
             total_original_price = original_price * product_qty
 
-        if selling_price is not None and product_qty is not None:
+        if selling_price is not None and product_qty is not None: 
             total_selling_price = selling_price * product_qty
 
-        if total_selling_price is not None and total_original_price is not None:
+        if selling_price is not None and out_stock is not None:
+            total_price_out_stock = selling_price * out_stock
+
+        if total_selling_price is not None and total_price_out_stock is not None:
+            total_price_in_stock = total_selling_price - total_price_out_stock
+
+        if total_selling_price is not None and total_original_price is not None: 
             total_profit_price = total_selling_price - total_original_price
-            if total_original_price:
+            if total_original_price: 
                 total_profit_percentage = (total_profit_price / total_original_price) * 100
 
         return cls(
@@ -104,6 +114,8 @@ class ProductModels(ProductSchemas):
             saving_price            = saving_price,
             profit_price            = profit_price,
             profit_percentage       = profit_percentage,
+            total_price_in_stock    = total_price_in_stock,
+            total_price_out_stock   = total_price_out_stock,
             total_original_price    = total_original_price,
             total_selling_price     = total_selling_price,
             total_profit_price      = total_profit_price,
@@ -141,6 +153,8 @@ def product_response(item: Any)-> dict[str, Any]:
         "saving_price"           : getattr(item, "saving_price"),
         "profit_price"           : getattr(item, "profit_price"),
         "profit_percentage"      : getattr(item, "profit_percentage"),
+        "total_price_in_stock"   : getattr(item, "total_price_in_stock"),
+        "total_price_out_stock"  : getattr(item, "total_price_out_stock"),
         "total_original_price"   : getattr(item, "total_original_price"),
         "total_selling_price"    : getattr(item, "total_selling_price"),
         "total_profit_price"     : getattr(item, "total_profit_price"),

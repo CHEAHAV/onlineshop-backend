@@ -15,31 +15,33 @@ async def create_product(
 ):
     new_id   = generate_id(db)
     new_item = TBL_PRODUCT(
-        id               = new_id,
-        name             = product.name,
-        name_lc          = product.name_lc,
-        product_qty      = product.product_qty,
-        out_stock        = product.out_stock,
-        in_stock         = product.in_stock,
-        rating           = product.rating,
-        viewer           = product.viewer,
-        old_price        = product.old_price,
-        original_price   = product.original_price,
-        selling_price    = product.selling_price,
-        discount         = product.discount,
-        saving_price     = product.saving_price,
-        profit_price     = product.profit_price,
-        profit_percentage = product.profit_percentage,
-        total_original_price = product.total_original_price,
-        total_selling_price = product.total_selling_price,
-        total_profit_price = product.total_profit_price,
+        id                      = new_id,
+        name                    = product.name,
+        name_lc                 = product.name_lc,
+        product_qty             = product.product_qty,
+        out_stock               = product.out_stock,
+        in_stock                = product.in_stock,
+        rating                  = product.rating,
+        viewer                  = product.viewer,
+        old_price               = product.old_price,
+        original_price          = product.original_price,
+        selling_price           = product.selling_price,
+        discount                = product.discount,
+        saving_price            = product.saving_price,
+        profit_price            = product.profit_price,
+        profit_percentage       = product.profit_percentage,
+        total_price_in_stock    = product.total_price_in_stock,
+        total_price_out_stock   = product.total_price_out_stock,
+        total_original_price    = product.total_original_price,
+        total_selling_price     = product.total_selling_price,
+        total_profit_price      = product.total_profit_price,
         total_profit_percentage = product.total_profit_percentage,
-        product_image_id = product.product_image_id,
-        shipping         = product.shipping,
-        badge            = product.badge,
-        is_favorite      = product.is_favorite,
-        is_new           = product.is_new,
-        active           = product.active,
+        product_image_id        = product.product_image_id,
+        shipping                = product.shipping,
+        badge                   = product.badge,
+        is_favorite             = product.is_favorite,
+        is_new                  = product.is_new,
+        active                  = product.active,
     )
     db.add(new_item)
     db.commit()
@@ -57,9 +59,9 @@ async def create_product(
 
 @app.get(
     "/get_product",
-    tags=["Product"],
-    operation_id="get_product",
-    dependencies=[Depends(get_current_user)],
+    tags         = ["Product"],
+    operation_id = "get_product",
+    dependencies = [Depends(get_current_user)],
 )
 async def get_product(
     page: int     = Query(default=1, ge=1),
@@ -98,13 +100,13 @@ async def get_product(
 
 @app.get(
     "/get_product/{product_id}",
-    tags=["Product"],
-    operation_id="get_product_by_id",
-    dependencies=[Depends(get_current_user)],
+    tags         = ["Product"],
+    operation_id = "get_product_by_id",
+    dependencies = [Depends(get_current_user)],
 )
 async def get_product_by_id(
     product_id: str,
-    db         : Session = Depends(get_db),
+    db        : Session = Depends(get_db),
 ):
     item = db.query(TBL_PRODUCT).filter(TBL_PRODUCT.id == product_id).first()
     if not item:
@@ -130,7 +132,7 @@ async def get_product_by_id(
 async def update_product(
     product_id: str,
     product   : ProductModels = Depends(ProductModels.form),
-    db         : Session        = Depends(get_db),
+    db        : Session        = Depends(get_db),
 ):
     item = db.query(TBL_PRODUCT).filter(TBL_PRODUCT.id == product_id).first()
     if not item:
@@ -152,6 +154,8 @@ async def update_product(
     setattr(item, "saving_price", product.saving_price)
     setattr(item, "profit_price", product.profit_price)
     setattr(item, "profit_percentage", product.profit_percentage)
+    setattr(item, "total_price_in_stock", product.total_price_in_stock)
+    setattr(item, "total_price_out_stock", product.total_price_out_stock)
     setattr(item, "total_original_price", product.total_original_price)
     setattr(item, "total_selling_price", product.total_selling_price)
     setattr(item, "total_profit_price", product.total_profit_price)
