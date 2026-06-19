@@ -1,8 +1,10 @@
 from core.db_session import get_db
 from core.api.user.views import get_current_user
+from core.upload_utils import delete_cloudinary_image
 import math
+from typing import cast
 from main import app
-from fastapi import Depends, File, Form, HTTPException, Query, UploadFile, status
+from fastapi import Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 from modules.category.models import TBL_CATEGORY
 from modules.category.schemas import *
@@ -49,7 +51,6 @@ async def create_category(
     }
 
 
-
 @app.get(
     "/get_category",
     tags=["Category"],
@@ -88,6 +89,33 @@ async def get_category(
             }
         },
         'error': {}
+    }
+
+
+@app.get(
+    "/get_category/{category_id}",
+    tags=["Category"],
+    operation_id="get_category_by_id",
+    dependencies=[Depends(get_current_user)],
+)
+async def get_category_by_id(
+    category_id: str,
+    db         : Session = Depends(get_db),
+):
+    item = db.query(TBL_CATEGORY).filter(TBL_CATEGORY.id == category_id).first()
+    if not item:
+        raise HTTPException(
+            status_code = status.HTTP_404_NOT_FOUND,
+            detail      = "Category not found",
+        )
+
+    return {
+        "ok"     : True,
+        "status" : 200,
+        "title"  : "Category",
+        "message": "Data retrieved successfully",
+        "data"   : category_response(item),
+        "error"  : {},
     }
 
 
@@ -150,15 +178,17 @@ async def delete_category(
             detail      = "Category not found",
         )
 
-    setattr(item, "active", False)
+    data = category_response(item)
+    image = cast(str | None, getattr(item, "image", None))
+    delete_cloudinary_image(image)
+    db.delete(item)
     db.commit()
-    db.refresh(item)
 
     return {
         "ok"     : True,
         "status" : 200,
         "title"  : "Category",
         "message": "Data deleted successfully",
-        "data"   : category_response(item),
+        "data"   : data,
         "error"  : {},
     }

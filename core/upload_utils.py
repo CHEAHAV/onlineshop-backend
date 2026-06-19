@@ -1,7 +1,7 @@
 import os
 import shutil
 import uuid
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from urllib.parse import unquote, urlparse
 
 import cloudinary
@@ -54,6 +54,37 @@ def media_name(value: str | None) -> str:
 
     path = urlparse(value).path if is_remote_url(value) else value
     return unquote(Path(path).name)
+
+
+def get_cloudinary_public_id(image_url: str | None) -> str | None:
+    if not image_url:
+        return None
+
+    path_parts = urlparse(image_url).path.split("/")
+    if "upload" not in path_parts:
+        return None
+
+    upload_index = path_parts.index("upload")
+    public_id_parts = path_parts[upload_index + 1:]
+    if public_id_parts and public_id_parts[0].startswith("v") and public_id_parts[0][1:].isdigit():
+        public_id_parts = public_id_parts[1:]
+
+    if not public_id_parts:
+        return None
+
+    public_id_path = unquote("/".join(public_id_parts))
+    return str(PurePosixPath(public_id_path).with_suffix(""))
+
+
+def delete_cloudinary_image(image_url: str | None) -> None:
+    public_id = get_cloudinary_public_id(image_url)
+    if not public_id:
+        return
+
+    try:
+        cloudinary.uploader.destroy(public_id, resource_type="image", invalidate=True)
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Cloudinary delete failed: {exc}") from exc
 
 
 def upload_image_to_cloudinary(upload: UploadFile, folder: str) -> str:
