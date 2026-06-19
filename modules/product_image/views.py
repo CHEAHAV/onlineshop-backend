@@ -2,10 +2,11 @@ from core.db_session import get_db
 from core.api.user.views import get_current_user
 import math
 from main import app
-from fastapi import Depends, Query
+from fastapi import Depends, Query, status
 from sqlalchemy.orm import Session
 from modules.product_image.models import TBL_PRODUCT_IMAGE
 from modules.product_image.schemas import *
+from core.upload_utils import delete_cloudinary_image
 
 @app.post(
     "/create_product_image",
@@ -88,4 +89,103 @@ async def get_product_image(
             }
         },
         'error': {}
+    }
+
+
+@app.get(
+    "/get_product_image/{product_image_id}",
+    tags=["Product Image"],
+    operation_id="get_product_image_by_id",
+    dependencies=[Depends(get_current_user)],
+)
+async def get_product_image_by_id(
+    product_image_id: str,
+    db         : Session = Depends(get_db),
+):
+    item = db.query(TBL_PRODUCT_IMAGE).filter(TBL_PRODUCT_IMAGE.id == product_image_id).first()
+    if not item:
+        raise HTTPException(
+            status_code = status.HTTP_404_NOT_FOUND,
+            detail      = "Product Image not found",
+        )
+
+    return {
+        "ok"     : True,
+        "status" : 200,
+        "title"  : "Product Image",
+        "message": "Data retrieved successfully",
+        "data"   : product_image_resonse(item),
+        "error"  : {},
+    }
+
+
+@app.put(
+    "/update_product_image/{product_image_id}",
+    tags         = ["Product Image"],
+    operation_id = "update_product_image",
+    dependencies = [Depends(get_current_user)],
+)
+async def update_product_image(
+    product_image_id: str,
+    pimage   : ProductImageModels = Depends(ProductImageModels.form),
+    db         : Session        = Depends(get_db),
+):
+    item = db.query(TBL_PRODUCT_IMAGE).filter(TBL_PRODUCT_IMAGE.id == product_image_id).first()
+    if not item:
+        raise HTTPException(
+            status_code = status.HTTP_404_NOT_FOUND,
+            detail      = "Product Image not found",
+    )
+    setattr(item, "title", pimage.title)
+    setattr(item, "title_lc", pimage.title_lc)
+    setattr(item, "description", pimage.description)
+    setattr(item, "description_lc", pimage.description_lc)
+    setattr(item, "color_id", pimage.color_id)
+    setattr(item, "active", pimage.active)
+    if pimage.image and pimage.image.filename: 
+        setattr(item, "image", save_image(pimage.image))
+
+    db.commit()
+    db.refresh(item)
+    
+    return {
+        "ok"     : True,
+        "status" : 200,
+        "title"  : "Product Image",
+        "message": "Data updated successfully",
+        "data"   : product_image_resonse(item),
+        "error"  : {},
+    }
+
+
+@app.delete(
+    "/delete_product_image/{product_image_id}",
+    tags         = ["Product Image"],
+    operation_id = "delete_product_image",
+    dependencies = [Depends(get_current_user)],
+)
+async def delete_product_image(
+    product_image_id: str,
+    db         : Session = Depends(get_db),
+):
+    item = db.query(TBL_PRODUCT_IMAGE).filter(TBL_PRODUCT_IMAGE.id == product_image_id).first()
+    if not item:
+        raise HTTPException(
+            status_code = status.HTTP_404_NOT_FOUND,
+            detail      = "Product Image not found",
+        )
+
+    data = product_image_resonse(item)
+    image = cast(str | None, getattr(item, "image", None))
+    delete_cloudinary_image(image)
+    db.delete(item)
+    db.commit()
+
+    return {
+        "ok"     : True,
+        "status" : 200,
+        "title"  : "Product Image",
+        "message": "Data deleted successfully",
+        "data"   : data,
+        "error"  : {},
     }

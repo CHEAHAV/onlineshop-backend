@@ -1,5 +1,5 @@
 import math
-from fastapi import Depends, Query
+from fastapi import Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 from core.api.user.views import get_current_user
 from core.db_session import get_db
@@ -45,4 +45,31 @@ async def get_color(
             }
         },
         'error': {}
+    }
+
+
+@website.get(
+    "/get_color/{color_id}",
+    tags=["Color"],
+    operation_id="get_color_by_id",
+    dependencies=[Depends(get_current_user)],
+)
+async def get_color_by_id(
+    color_id: str,
+    db         : Session = Depends(get_db),
+):
+    item = db.query(TBL_COLOR).filter(TBL_COLOR.id == color_id).first()
+    if not item:
+        raise HTTPException(
+            status_code = status.HTTP_404_NOT_FOUND,
+            detail      = "Color not found",
+        )
+
+    return {
+        "ok"     : True,
+        "status" : 200,
+        "title"  : "Color",
+        "message": "Data retrieved successfully",
+        "data"   : color_response(item),
+        "error"  : {},
     }
