@@ -10,23 +10,30 @@ from modules.product.models import TBL_PRODUCT
 
 
 class ProductSchemas(BaseModel):
-    name             : str | None   = None
-    name_lc          : str | None   = None
-    product_qty      : int | None   = None
-    out_stock        : int | None   = None
-    in_stock         : int | None   = None
-    rating           : float | None = None
-    viewer           : int | None   = None
-    original_price   : float | None = None
-    selling_price    : float | None = None
-    discount         : float | None = None
-    saving_price     : float | None = None
-    product_image_id: str | None    = None
-    shipping         : float | None = None
-    badge            : str | None   = None
-    is_favorite      : bool         = False
-    is_new           : bool         = True
-    active           : bool         = True
+    name                    : str | None    = None
+    name_lc                 : str | None    = None
+    product_qty             : int | None    = None
+    out_stock               : int | None    = None
+    in_stock                : int | None    = None
+    rating                  : float | None  = None
+    viewer                  : int | None    = None
+    old_price               : float | None  = None
+    original_price          : float | None  = None
+    selling_price           : float | None  = None
+    discount                : float | None  = None
+    saving_price            : float | None  = None
+    profit_price            : float | None  = None
+    profit_percentage       : float | None  = None
+    total_original_price    : float | None  = None
+    total_selling_price     : float | None  = None
+    total_profit_price      : float | None  = None
+    total_profit_percentage : float | None  = None
+    product_image_id        : str | None    = None
+    shipping                : float | None  = None
+    badge                   : str | None    = None
+    is_favorite             : bool          = False
+    is_new                  : bool          = True
+    active                  : bool          = True
 
 class ProductModels(ProductSchemas):
     @classmethod
@@ -39,6 +46,7 @@ class ProductModels(ProductSchemas):
         rating           : float | None = Form(None, examples=[""]),
         viewer           : int | None   = Form(None, examples=[""]),
         original_price   : float | None = Form(None, examples=[""]),
+        old_price        : float | None = Form(None, examples=[""]),
         selling_price    : float | None = Form(None, examples=[""]),
         product_image_id : str | None   = Form(None, examples=[""]),
         shipping         : float | None = Form(None, examples=[""]),
@@ -47,35 +55,65 @@ class ProductModels(ProductSchemas):
         is_new           : bool         = True,
         active           : bool         = True
     ):
-        saving_price = None
-        discount = None
-        if original_price is not None and selling_price is not None:
-            saving_price = original_price - selling_price
-            if original_price:
-                discount = (saving_price / original_price) * 100
+        saving_price            = None
+        discount                = None
+        in_stock                = None
+        profit_price            = None
+        profit_percentage       = None
+        total_original_price    = None
+        total_selling_price     = None
+        total_profit_price      = None
+        total_profit_percentage = None
 
-        in_stock = None
+        if old_price is not None and selling_price is not None:
+            saving_price = old_price - selling_price
+            if old_price:
+                discount = (saving_price / old_price) * 100
+
         if product_qty is not None and out_stock is not None:
             in_stock = product_qty - out_stock
 
+        if selling_price is not None and original_price is not None:
+            profit_price = selling_price - original_price
+            if original_price:
+                profit_percentage = (profit_price / original_price) * 100
+
+        if original_price is not None and product_qty is not None:
+            total_original_price = original_price * product_qty
+
+        if selling_price is not None and product_qty is not None:
+            total_selling_price = selling_price * product_qty
+
+        if total_selling_price is not None and total_original_price is not None:
+            total_profit_price = total_selling_price - total_original_price
+            if total_original_price:
+                total_profit_percentage = (total_profit_price / total_original_price) * 100
+
         return cls(
-            name             = name,
-            name_lc          = name_lc,
-            product_qty      = product_qty,
-            out_stock        = out_stock,
-            in_stock         = in_stock,
-            rating           = rating,
-            viewer           = viewer,
-            original_price   = original_price,
-            selling_price    = selling_price,
-            discount         = discount,
-            saving_price     = saving_price,
-            product_image_id = product_image_id,
-            shipping         = shipping,
-            badge            = badge,
-            is_favorite      = is_favorite,
-            is_new           = is_new,
-            active           = active
+            name                    = name,
+            name_lc                 = name_lc,
+            product_qty             = product_qty,
+            out_stock               = out_stock,
+            in_stock                = in_stock,
+            rating                  = rating,
+            viewer                  = viewer,
+            old_price               = old_price,
+            original_price          = original_price,
+            selling_price           = selling_price,
+            discount                = discount,
+            saving_price            = saving_price,
+            profit_price            = profit_price,
+            profit_percentage       = profit_percentage,
+            total_original_price    = total_original_price,
+            total_selling_price     = total_selling_price,
+            total_profit_price      = total_profit_price,
+            total_profit_percentage = total_profit_percentage,
+            product_image_id        = product_image_id,
+            shipping                = shipping,
+            badge                   = badge,
+            is_favorite             = is_favorite,
+            is_new                  = is_new,
+            active                  = active
         )
 
 def generate_id(db: Session) -> str:
@@ -88,22 +126,29 @@ def generate_id(db: Session) -> str:
 
 def product_response(item: Any)-> dict[str, Any]:
     return{
-        "id"              : getattr(item, "id"),
-        "name"            : getattr(item, "name"),
-        "name_lc"         : getattr(item, "name_lc"),
-        "product_qty"     : getattr(item, "product_qty"),
-        "out_stock"       : getattr(item, "out_stock"),
-        "in_stock"        : getattr(item, "in_stock"),
-        "rating"          : getattr(item, "rating"),
-        "viewer"          : getattr(item, "viewer"),
-        "original_price"  : getattr(item, "original_price"),
-        "selling_price"   : getattr(item, "selling_price"),
-        "discount"        : getattr(item, "discount"),
-        "saving_price"    : getattr(item, "saving_price"),
-        "product_image_id": getattr(item, "product_image_id"),
-        "shipping"        : getattr(item, "shipping"),
-        "badge"           : getattr(item, "badge"),
-        "is_favorite"     : getattr(item, "is_favorite"),
-        "is_new"          : getattr(item, "is_new"),
-        "active"          : getattr(item, "active"),
+        "id"                     : getattr(item, "id"),
+        "name"                   : getattr(item, "name"),
+        "name_lc"                : getattr(item, "name_lc"),
+        "product_qty"            : getattr(item, "product_qty"),
+        "out_stock"              : getattr(item, "out_stock"),
+        "in_stock"               : getattr(item, "in_stock"),
+        "rating"                 : getattr(item, "rating"),
+        "viewer"                 : getattr(item, "viewer"),
+        "old_price"              : getattr(item, "old_price"),
+        "original_price"         : getattr(item, "original_price"),
+        "selling_price"          : getattr(item, "selling_price"),
+        "discount"               : getattr(item, "discount"),
+        "saving_price"           : getattr(item, "saving_price"),
+        "profit_price"           : getattr(item, "profit_price"),
+        "profit_percentage"      : getattr(item, "profit_percentage"),
+        "total_original_price"   : getattr(item, "total_original_price"),
+        "total_selling_price"    : getattr(item, "total_selling_price"),
+        "total_profit_price"     : getattr(item, "total_profit_price"),
+        "total_profit_percentage": getattr(item, "total_profit_percentage"),
+        "product_image_id"       : getattr(item, "product_image_id"),
+        "shipping"               : getattr(item, "shipping"),
+        "badge"                  : getattr(item, "badge"),
+        "is_favorite"            : getattr(item, "is_favorite"),
+        "is_new"                 : getattr(item, "is_new"),
+        "active"                 : getattr(item, "active"),
     }

@@ -119,10 +119,6 @@ async def get_category_by_id(
     }
 
 
-
-    
-
-
 @app.put(
     "/update_category/{category_id}",
     tags         = ["Category"],
@@ -140,21 +136,16 @@ async def update_category(
             status_code = status.HTTP_404_NOT_FOUND,
             detail      = "Category not found",
     )
-
-    if category.name is not None: 
-        setattr(item, "name", category.name)
-    if category.name_lc is not None: 
-        setattr(item, "name_lc", category.name_lc)
-    if category.description is not None: 
-        setattr(item, "description", category.description)
-    if category.active is not None: 
-        setattr(item, "active", category.active)
+    setattr(item, "name", category.name)
+    setattr(item, "name_lc", category.name_lc)
+    setattr(item, "description", category.description)
+    setattr(item, "active", category.active)
     if category.image and category.image.filename: 
         setattr(item, "image", save_image(category.image))
 
     db.commit()
     db.refresh(item)
-
+    
     return {
         "ok"     : True,
         "status" : 200,

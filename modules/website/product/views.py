@@ -1,5 +1,5 @@
 import math
-from fastapi import Depends, Query
+from fastapi import Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 from core.api.user.views import get_current_user
 from core.db_session import get_db
@@ -44,4 +44,28 @@ async def get_product(
             }
         },
         'error': {}
+    }
+
+@website.get(
+    "/get_product/{product_id}",
+    tags=["Product"],
+    operation_id="get_product_by_id",
+)
+async def get_product_by_id(
+    product_id: str,
+    db         : Session = Depends(get_db),
+):
+    item = db.query(TBL_PRODUCT).filter(TBL_PRODUCT.id == product_id).first()
+    if not item:
+        raise HTTPException(
+            status_code = status.HTTP_404_NOT_FOUND,
+            detail      = "Product not found",
+        )
+    return {
+        "ok"     : True,
+        "status" : 200,
+        "title"  : "Product",
+        "message": "Data retrieved successfully",
+        "data"   : product_response(item),
+        "error"  : {},
     }

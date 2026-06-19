@@ -1,5 +1,5 @@
 import math
-from fastapi import Depends, Query
+from fastapi import Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 from core.db_session import get_db
 from main import website
@@ -44,4 +44,30 @@ async def get_category(
             },
         },
         "error": {},
+    }
+
+
+@website.get(
+    "/get_category/{category_id}",
+    tags=["Category"],
+    operation_id="get_category_by_id",
+)
+async def get_category_by_id(
+    category_id: str,
+    db         : Session = Depends(get_db),
+):
+    item = db.query(TBL_CATEGORY).filter(TBL_CATEGORY.id == category_id).first()
+    if not item:
+        raise HTTPException(
+            status_code = status.HTTP_404_NOT_FOUND,
+            detail      = "Category not found",
+        )
+
+    return {
+        "ok"     : True,
+        "status" : 200,
+        "title"  : "Category",
+        "message": "Data retrieved successfully",
+        "data"   : category_response(item),
+        "error"  : {},
     }
