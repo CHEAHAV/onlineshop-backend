@@ -119,6 +119,10 @@ async def get_category_by_id(
     }
 
 
+
+    
+
+
 @app.put(
     "/update_category/{category_id}",
     tags         = ["Category"],
