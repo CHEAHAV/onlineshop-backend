@@ -2,7 +2,7 @@ from core.db_session import get_db
 from core.api.user.views import get_current_user
 import math
 from main import app
-from fastapi import Depends, Query
+from fastapi import Depends, File, Form, HTTPException, Query, UploadFile, status
 from sqlalchemy.orm import Session
 from modules.category.models import TBL_CATEGORY
 from modules.category.schemas import *
@@ -88,4 +88,77 @@ async def get_category(
             }
         },
         'error': {}
+    }
+
+
+@app.put(
+    "/update_category/{category_id}",
+    tags         = ["Category"],
+    operation_id = "update_category",
+    dependencies = [Depends(get_current_user)],
+)
+async def update_category(
+    category_id: str,
+    category   : CategoryModels = Depends(CategoryModels.form),
+    db         : Session        = Depends(get_db),
+):
+    item = db.query(TBL_CATEGORY).filter(TBL_CATEGORY.id == category_id).first()
+    if not item:
+        raise HTTPException(
+            status_code = status.HTTP_404_NOT_FOUND,
+            detail      = "Category not found",
+    )
+
+    if category.name is not None: 
+        setattr(item, "name", category.name)
+    if category.name_lc is not None: 
+        setattr(item, "name_lc", category.name_lc)
+    if category.description is not None: 
+        setattr(item, "description", category.description)
+    if category.active is not None: 
+        setattr(item, "active", category.active)
+    if category.image and category.image.filename: 
+        setattr(item, "image", save_image(category.image))
+
+    db.commit()
+    db.refresh(item)
+
+    return {
+        "ok"     : True,
+        "status" : 200,
+        "title"  : "Category",
+        "message": "Data updated successfully",
+        "data"   : category_response(item),
+        "error"  : {},
+    }
+
+
+@app.delete(
+    "/delete_category/{category_id}",
+    tags         = ["Category"],
+    operation_id = "delete_category",
+    dependencies = [Depends(get_current_user)],
+)
+async def delete_category(
+    category_id: str,
+    db         : Session = Depends(get_db),
+):
+    item = db.query(TBL_CATEGORY).filter(TBL_CATEGORY.id == category_id).first()
+    if not item:
+        raise HTTPException(
+            status_code = status.HTTP_404_NOT_FOUND,
+            detail      = "Category not found",
+        )
+
+    setattr(item, "active", False)
+    db.commit()
+    db.refresh(item)
+
+    return {
+        "ok"     : True,
+        "status" : 200,
+        "title"  : "Category",
+        "message": "Data deleted successfully",
+        "data"   : category_response(item),
+        "error"  : {},
     }
