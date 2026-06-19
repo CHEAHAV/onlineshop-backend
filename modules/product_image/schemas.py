@@ -57,7 +57,7 @@ def product_image_resonse(item: Any) -> dict[str, Any]:
     return{
         "id"            : getattr(item, "id"),
         "titile"        : getattr(item, "title"),
-        "titile_lc"     : getattr(item, "title_lc"),
+        "title_lc"     : getattr(item, "title_lc"),
         "description"   : getattr(item, "description"),
         "description_lc": getattr(item, "description_lc"),
         "image"         : media_name(image),

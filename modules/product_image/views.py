@@ -30,7 +30,7 @@ async def create_product_image(
     new_item = TBL_PRODUCT_IMAGE(
         id             = new_id,
         title          = pimage.title,
-        tittle_lc      = pimage.title_lc,
+        title_lc      = pimage.title_lc,
         description    = pimage.description,
         description_lc = pimage.description_lc,
         color_id       = pimage.color_id,

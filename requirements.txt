@@ -13,7 +13,7 @@ emails
 alembic
 httpx
 jinja2
-bcrypt
+bcrypt==4.0.1
 boto3
 cryptography
 cython
