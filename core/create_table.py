@@ -1,3 +1,5 @@
+from typing import Any, Mapping
+
 from passlib.context import CryptContext
 from sqlalchemy import Boolean, Date, DateTime, Integer, Numeric, String, Text, inspect, text
 from sqlalchemy.schema import CreateColumn
@@ -35,7 +37,7 @@ def _normalized_type(value: str) -> str:
     return " ".join(value.upper().replace("CHARACTER VARYING", "VARCHAR").split())
 
 
-def _should_alter_type(model_column, database_column: dict) -> bool:
+def _should_alter_type(model_column, database_column: Mapping[str, Any]) -> bool:
     model_type = model_column.type
     database_type = database_column["type"]
 

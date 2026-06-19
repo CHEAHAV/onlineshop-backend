@@ -17,9 +17,9 @@ class CategoryModels(CategorySchemas):
     @classmethod
     def form(
         cls,
-        name        : str        = Form(None, description="Category name (EN)", examples=[""]),
-        name_lc     : str        = Form(None, description="Category name (Local)", examples=[""]),
-        description : str        = Form(None, description="Description",    examples=[""]),
+        name        : str        = Form(None, examples=[""]),
+        name_lc     : str        = Form(None, examples=[""]),
+        description : str        = Form(None, examples=[""]),
         image       : UploadFile = File(None),
         active      : bool       = True,
     ):
@@ -44,13 +44,13 @@ def save_image(image: UploadFile) -> str:
 
 
 def category_response(item: Any) -> dict[str, Any]:
-    image = cast(str | None, getattr(item, "image", None))
+    image = cast(str | None, getattr(item, "image"))
     return {
-        "id"         : getattr(item, "id", ""),
-        "name"       : getattr(item, "name", None),
-        "name_lc"    : getattr(item, "name_lc", None),
-        "description": getattr(item, "description", None),
+        "id"         : getattr(item, "id"),
+        "name"       : getattr(item, "name"),
+        "name_lc"    : getattr(item, "name_lc"),
+        "description": getattr(item, "description"),
         "image"      : media_name(image),
         "image_link" : media_url(image),
-        "active"     : getattr(item, "active", True),
+        "active"     : getattr(item, "active"),
     }
