@@ -12,6 +12,7 @@ from modules.product.models import TBL_PRODUCT
 class ProductSchemas(BaseModel):
     name                    : str | None   = None
     name_lc                 : str | None   = None
+    category_id             : str | None   = None
     product_qty             : int | None   = None
     out_stock               : int | None   = None
     in_stock                : int | None   = None
@@ -43,6 +44,7 @@ class ProductModels(ProductSchemas):
         cls,
         name             : str | None   = Form(None, examples=[""]),
         name_lc          : str | None   = Form(None, examples=[""]),
+        category_id      : str | None   = Form(None, examples=[""]),
         product_qty      : int | None   = Form(None, examples=[""]),
         out_stock        : int | None   = Form(None, examples=[""]),
         rating           : float | None = Form(None, examples=[""]),
@@ -102,6 +104,7 @@ class ProductModels(ProductSchemas):
         return cls(
             name                    = name,
             name_lc                 = name_lc,
+            category_id             = category_id,
             product_qty             = product_qty,
             out_stock               = out_stock,
             in_stock                = in_stock,
@@ -141,6 +144,7 @@ def product_response(item: Any)-> dict[str, Any]:
         "id"                     : getattr(item, "id"),
         "name"                   : getattr(item, "name"),
         "name_lc"                : getattr(item, "name_lc"),
+        "category_id"            : getattr(item, "category_id"),
         "product_qty"            : getattr(item, "product_qty"),
         "out_stock"              : getattr(item, "out_stock"),
         "in_stock"               : getattr(item, "in_stock"),

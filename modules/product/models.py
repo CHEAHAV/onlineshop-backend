@@ -5,6 +5,7 @@ class TBL_PRODUCT(Base):
     __tablename__ = "tbl_product"
 
     id                      = Column(String(55), primary_key= True, unique= True)
+    category_id             = Column(String(55))
     name                    = Column(String(150))
     name_lc                 = Column(String(150))
     product_qty             = Column(Integer)

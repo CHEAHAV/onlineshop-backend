@@ -18,6 +18,7 @@ async def create_product(
         id                      = new_id,
         name                    = product.name,
         name_lc                 = product.name_lc,
+        category_id             = product.category_id,
         product_qty             = product.product_qty,
         out_stock               = product.out_stock,
         in_stock                = product.in_stock,
@@ -142,6 +143,7 @@ async def update_product(
     )
     setattr(item, "name", product.name)
     setattr(item, "name_lc", product.name_lc)
+    setattr(item, "category_id", product.category_id)
     setattr(item, "product_qty", product.product_qty)
     setattr(item, "out_stock", product.out_stock)
     setattr(item, "in_stock", product.in_stock)

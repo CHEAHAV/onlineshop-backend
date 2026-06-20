@@ -37,6 +37,7 @@ def _model_candidates(view_module: str) -> list[str]:
 
 def import_registered_module_models() -> None:
     register_files = [
+        ROOT_DIR / "core" / "api" / "register.py",
         ROOT_DIR / "modules" / "register.py",
         ROOT_DIR / "modules" / "website" / "register.py",
     ]
