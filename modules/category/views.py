@@ -41,12 +41,14 @@ async def create_category(
     db.commit()
     db.refresh(new_item)
 
+    data = category_response(new_item)
+
     return {
         "ok"     : True,
         "status" : 201,
         "title"  : "Category",
         "message": "Data created successfully",
-        "data"   : category_response(new_item),
+        "data"   : data,
         "error"  : {},
     }
 
