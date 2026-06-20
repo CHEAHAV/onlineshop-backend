@@ -1,5 +1,6 @@
 import math
-from fastapi import Depends, Query, status
+from fastapi import Depends, HTTPException, Query, status
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import selectinload
 
 from core.api.sub_module.models import TBL_SUB_MODULE
@@ -34,7 +35,14 @@ async def create_sub_module(
 
     )
     db.add(new_item)
-    db.commit()
+    try:
+        db.commit()
+    except IntegrityError as exc:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Sub module ID already exists or module_id is invalid. Please try again.",
+        ) from exc
     db.refresh(new_item)
 
     data = sub_module_response(new_item)

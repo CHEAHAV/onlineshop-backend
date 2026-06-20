@@ -2,7 +2,7 @@ import math
 from main import app
 from sqlalchemy.orm import Session
 from modules.color.models import TBL_COLOR
-from fastapi import Depends, Query, status
+from fastapi import Depends, HTTPException, Query, status
 from core.api.user.views import get_current_user
 from core.db_session import get_db
 from modules.color.schemas import *

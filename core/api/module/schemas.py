@@ -2,6 +2,8 @@ from typing import Any
 from fastapi import Form, HTTPException
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
+
+from core.api.module.models import TBL_MODULE
 from core.prefix_id import generate_prefixed_id
 
 
@@ -39,7 +41,7 @@ class ModuleModels(ModuleSchemas):
 
 def generate_id(db: Session)-> str:
     result = generate_prefixed_id(db, [
-
+        TBL_MODULE
     ], "MOD")
     if result is None:
         raise HTTPException(status_code=500, detail= "Failed to generate a unique ID")
