@@ -1,5 +1,7 @@
 import math
 from fastapi import Depends, Query, status
+from sqlalchemy.orm import selectinload
+
 from core.api.sub_module.models import TBL_SUB_MODULE
 from core.api.sub_module.schemas import *
 from core.api.user.views import get_current_user
@@ -58,7 +60,11 @@ async def get_sub_module(
     size: int     = Query(default=10, ge=1),
     db  : Session = Depends(get_db)
 ):
-    base_query = db.query(TBL_SUB_MODULE).filter(TBL_SUB_MODULE.active == True)
+    base_query = (
+        db.query(TBL_SUB_MODULE)
+        .options(selectinload(TBL_SUB_MODULE.module))
+        .filter(TBL_SUB_MODULE.active == True)
+    )
 
     total   = base_query.count()
     results = base_query.order_by(TBL_SUB_MODULE.ordering\
@@ -68,7 +74,7 @@ async def get_sub_module(
                         .all()
     total_pages = math.ceil(total / size) if size else 1
     
-    data_list = [sub_module_response(c) for c in results]
+    data_list = [sub_module_response(c, include_module=True) for c in results]
 
     return {
         'ok'     : True,
@@ -98,7 +104,12 @@ async def get_sub_module_by_id(
     sub_module_id: str,
     db         : Session = Depends(get_db),
 ):
-    item = db.query(TBL_SUB_MODULE).filter(TBL_SUB_MODULE.id == sub_module_id).first()
+    item = (
+        db.query(TBL_SUB_MODULE)
+        .options(selectinload(TBL_SUB_MODULE.module))
+        .filter(TBL_SUB_MODULE.id == sub_module_id)
+        .first()
+    )
     if not item:
         raise HTTPException(
             status_code = status.HTTP_404_NOT_FOUND,
@@ -110,7 +121,7 @@ async def get_sub_module_by_id(
         "status" : 200,
         "title"  : "sub_module",
         "message": "Data retrieved successfully",
-        "data"   : sub_module_response(item),
+        "data"   : sub_module_response(item, include_module=True),
         "error"  : {},
     }
 
@@ -171,10 +182,9 @@ async def delete_sub_module(
             detail      = "sub_module not found",
         )
 
+    data = sub_module_response(item)
     db.delete(item)
     db.commit()
-
-    data = sub_module_response(item)
 
     return {
         "ok"     : True,

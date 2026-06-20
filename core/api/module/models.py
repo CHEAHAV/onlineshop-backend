@@ -1,4 +1,6 @@
 from sqlalchemy import Column, String, Boolean, Integer, Text
+from sqlalchemy.orm import relationship
+
 from core.db import Base
 
 
@@ -12,3 +14,9 @@ class TBL_MODULE(Base):
     model    = Column(String(255))
     ordering = Column(Integer)
     active   = Column(Boolean)
+
+    sub_modules = relationship(
+        "TBL_SUB_MODULE",
+        back_populates="module",
+        lazy="selectin",
+    )

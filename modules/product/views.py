@@ -1,10 +1,13 @@
 import math
 from typing import cast
 from fastapi import Depends, HTTPException, Query, status
+from sqlalchemy.orm import selectinload
+
 from core.db_session import get_db
 from core.api.user.views import get_current_user
 from main import app
 from modules.product.models import TBL_PRODUCT
+from modules.product_image.models import TBL_PRODUCT_IMAGE
 from modules.product.schemas import *
 
 @app.post("/create_product", tags=["Product"], status_code=201, operation_id="create_product",dependencies=[Depends(get_current_user)])
@@ -69,7 +72,14 @@ async def get_product(
     size: int     = Query(default=10, ge=1),
     db  : Session = Depends(get_db)
 ):
-    base_query = db.query(TBL_PRODUCT).filter(TBL_PRODUCT.active == True)
+    base_query = (
+        db.query(TBL_PRODUCT)
+        .options(
+            selectinload(TBL_PRODUCT.category),
+            selectinload(TBL_PRODUCT.product_image).selectinload(TBL_PRODUCT_IMAGE.color),
+        )
+        .filter(TBL_PRODUCT.active == True)
+    )
 
     total   = base_query.count()
     results = base_query.order_by(TBL_PRODUCT.name\
@@ -109,7 +119,15 @@ async def get_product_by_id(
     product_id: str,
     db        : Session = Depends(get_db),
 ):
-    item = db.query(TBL_PRODUCT).filter(TBL_PRODUCT.id == product_id).first()
+    item = (
+        db.query(TBL_PRODUCT)
+        .options(
+            selectinload(TBL_PRODUCT.category),
+            selectinload(TBL_PRODUCT.product_image).selectinload(TBL_PRODUCT_IMAGE.color),
+        )
+        .filter(TBL_PRODUCT.id == product_id)
+        .first()
+    )
     if not item:
         raise HTTPException(
             status_code = status.HTTP_404_NOT_FOUND,

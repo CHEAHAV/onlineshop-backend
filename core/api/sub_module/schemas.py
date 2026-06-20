@@ -49,8 +49,8 @@ def generate_id(db: Session)-> str:
         raise HTTPException(status_code=500, detail= "Failed to generate a unique ID")
     return result
 
-def sub_module_response(item : Any)-> dict[str, Any]:
-    return{
+def sub_module_response(item : Any, include_module: bool = False)-> dict[str, Any]:
+    data = {
         "id"       : getattr(item, "id"),
         "module_id": getattr(item, "module_id"),
         "name"     : getattr(item, "name"),
@@ -61,3 +61,11 @@ def sub_module_response(item : Any)-> dict[str, Any]:
         "ordering" : getattr(item, "ordering"),
         "active"   : getattr(item, "active"),
     }
+
+    if include_module:
+        from core.api.module.schemas import module_response
+
+        module = getattr(item, "module", None)
+        data["module"] = module_response(module, include_sub_modules=False) if module else None
+
+    return data

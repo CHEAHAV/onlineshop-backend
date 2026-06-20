@@ -52,15 +52,28 @@ def generate_id(db: Session) -> str:
 def save_image(image: UploadFile) -> str:
     return upload_image_to_cloudinary(image, "ProductImage")
 
-def product_image_resonse(item: Any) -> dict[str, Any]:
+def product_image_response(item: Any, include_color: bool = True) -> dict[str, Any]:
     image = cast(str | None, getattr(item, "image"))
-    return{
+    data = {
         "id"            : getattr(item, "id"),
-        "titile"        : getattr(item, "title"),
+        "title"         : getattr(item, "title"),
         "title_lc"     : getattr(item, "title_lc"),
         "description"   : getattr(item, "description"),
         "description_lc": getattr(item, "description_lc"),
+        "color_id"      : getattr(item, "color_id"),
         "image"         : media_name(image),
         "image_link"    : media_url(image),
         "active"        : getattr(item, "active"),
     }
+
+    if include_color:
+        from modules.color.schemas import color_response
+
+        color = getattr(item, "color", None)
+        data["color"] = color_response(color) if color else None
+
+    return data
+
+
+def product_image_resonse(item: Any, include_color: bool = True) -> dict[str, Any]:
+    return product_image_response(item, include_color=include_color)

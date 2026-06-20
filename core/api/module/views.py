@@ -1,5 +1,7 @@
 import math
 from fastapi import Depends, Query, status
+from sqlalchemy.orm import selectinload
+
 from core.api.module.models import TBL_MODULE
 from core.api.module.schemas import *
 from core.api.user.views import get_current_user
@@ -58,7 +60,11 @@ async def get_module(
     size: int     = Query(default=10, ge=1),
     db  : Session = Depends(get_db)
 ):
-    base_query = db.query(TBL_MODULE).filter(TBL_MODULE.active == True)
+    base_query = (
+        db.query(TBL_MODULE)
+        .options(selectinload(TBL_MODULE.sub_modules))
+        .filter(TBL_MODULE.active == True)
+    )
 
     total   = base_query.count()
     results = base_query.order_by(TBL_MODULE.ordering\
@@ -98,7 +104,12 @@ async def get_module_by_id(
     module_id: str,
     db         : Session = Depends(get_db),
 ):
-    item = db.query(TBL_MODULE).filter(TBL_MODULE.id == module_id).first()
+    item = (
+        db.query(TBL_MODULE)
+        .options(selectinload(TBL_MODULE.sub_modules))
+        .filter(TBL_MODULE.id == module_id)
+        .first()
+    )
     if not item:
         raise HTTPException(
             status_code = status.HTTP_404_NOT_FOUND,
@@ -170,10 +181,9 @@ async def delete_module(
             detail      = "Module not found",
         )
 
+    data = module_response(item)
     db.delete(item)
     db.commit()
-
-    data = module_response(item)
     
     return {
         "ok"     : True,

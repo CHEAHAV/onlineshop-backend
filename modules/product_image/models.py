@@ -1,4 +1,5 @@
-from sqlalchemy import Boolean, Column, String, Text
+from sqlalchemy import Boolean, Column, ForeignKey, String, Text
+from sqlalchemy.orm import relationship
 
 from core.db import Base
 
@@ -10,6 +11,17 @@ class TBL_PRODUCT_IMAGE(Base):
     title_lc       = Column(String(255))
     description    = Column(Text)
     description_lc = Column(Text)
-    color_id       = Column(String(55))
+    color_id       = Column(String(55), ForeignKey("tbl_color.id"))
     image          = Column(String(255))
     active         = Column(Boolean)
+
+    color = relationship(
+        "TBL_COLOR",
+        back_populates="product_images",
+        lazy="selectin",
+    )
+    products = relationship(
+        "TBL_PRODUCT",
+        back_populates="product_image",
+        lazy="selectin",
+    )

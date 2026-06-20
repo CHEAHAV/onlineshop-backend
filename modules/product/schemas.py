@@ -139,8 +139,12 @@ def generate_id(db: Session) -> str:
         raise HTTPException(status_code=500, detail="Failed to generate a unique ID")
     return result
 
-def product_response(item: Any)-> dict[str, Any]:
-    return{
+def product_response(
+    item: Any,
+    include_category: bool = True,
+    include_product_image: bool = True,
+)-> dict[str, Any]:
+    data = {
         "id"                     : getattr(item, "id"),
         "name"                   : getattr(item, "name"),
         "name_lc"                : getattr(item, "name_lc"),
@@ -170,3 +174,21 @@ def product_response(item: Any)-> dict[str, Any]:
         "is_new"                 : getattr(item, "is_new"),
         "active"                 : getattr(item, "active"),
     }
+
+    if include_category:
+        from modules.category.schemas import category_response
+
+        category = getattr(item, "category", None)
+        data["category"] = category_response(category) if category else None
+
+    if include_product_image:
+        from modules.product_image.schemas import product_image_response
+
+        product_image = getattr(item, "product_image", None)
+        data["product_image"] = (
+            product_image_response(product_image, include_color=True)
+            if product_image
+            else None
+        )
+
+    return data
