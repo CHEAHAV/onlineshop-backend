@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, Boolean, Integer
+from sqlalchemy import Column, String, Boolean, Integer, Text
 from core.db import Base
 
 class TBL_SUB_MODULE(Base):
@@ -9,7 +9,7 @@ class TBL_SUB_MODULE(Base):
     name      = Column(String(150))
     name_lc   = Column(String(150))
     url       = Column(String(255))
-    icon      = Column(String(255))
+    icon      = Column(Text)
     model     = Column(String(255))
     ordering  = Column(Integer)
     active    = Column(Boolean)

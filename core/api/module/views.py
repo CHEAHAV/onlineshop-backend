@@ -4,7 +4,6 @@ from core.api.module.models import TBL_MODULE
 from core.api.module.schemas import *
 from core.api.user.views import get_current_user
 from core.db_session import get_db
-from core.upload_utils import delete_cloudinary_image
 from main import app
 
 @app.post(
@@ -20,16 +19,13 @@ async def create_module(
 ):
     new_id = generate_id(db)
 
-    icon_filename : str | None = None
-    if module.icon and module.icon.filename:
-        icon_filename = save_icon(module.icon)
 
     new_item = TBL_MODULE(
         id       = new_id,
         name     = module.name,
         name_lc  = module.name_lc,
         url      = module.url,
-        icon     = icon_filename,
+        icon     = module.icon,
         model    = module.model,
         ordering = module.ordering,
         active   = module.active,
@@ -143,8 +139,6 @@ async def update_module(
     setattr(item, "model", Module.model)
     setattr(item, "ordering", Module.ordering)
     setattr(item, "active", Module.active)
-    if Module.icon and Module.icon.filename: 
-        setattr(item, "icon", save_icon(Module.icon))
 
     db.commit()
     db.refresh(item)
@@ -176,12 +170,11 @@ async def delete_module(
             detail      = "Module not found",
         )
 
-    data = module_response(item)
-    icon = cast(str | None, getattr(item, "icon", None))
-    delete_cloudinary_image(icon)
     db.delete(item)
     db.commit()
 
+    data = module_response(item)
+    
     return {
         "ok"     : True,
         "status" : 200,

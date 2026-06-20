@@ -4,12 +4,11 @@ from core.api.sub_module.models import TBL_SUB_MODULE
 from core.api.sub_module.schemas import *
 from core.api.user.views import get_current_user
 from core.db_session import get_db
-from core.upload_utils import delete_cloudinary_image
 from main import app
 
 @app.post(
     "/create_sub_module",
-    tags=["sub_module"],
+    tags=["Sub Module"],
     status_code=201,
     operation_id="create_sub_module",
     dependencies=[Depends(get_current_user)],
@@ -20,17 +19,13 @@ async def create_sub_module(
 ):
     new_id = generate_id(db)
 
-    icon_filename : str | None = None
-    if sub_module.icon and sub_module.icon.filename:
-        icon_filename = save_icon(sub_module.icon)
-
     new_item = TBL_SUB_MODULE(
         id        = new_id,
         module_id = sub_module.module_id,
         name      = sub_module.name,
         name_lc   = sub_module.name_lc,
         url       = sub_module.url,
-        icon      = icon_filename,
+        icon      = sub_module.icon,
         model     = sub_module.model,
         ordering  = sub_module.ordering,
         active    = sub_module.active,
@@ -54,7 +49,7 @@ async def create_sub_module(
 
 @app.get(
     "/get_sub_module",
-    tags=["sub_module"],
+    tags=["Sub Module"],
     operation_id="get_sub_module",
     dependencies=[Depends(get_current_user)],
 )
@@ -95,7 +90,7 @@ async def get_sub_module(
 
 @app.get(
     "/get_sub_module/{sub_module_id}",
-    tags=["sub_module"],
+    tags=["Sub Module"],
     operation_id="get_sub_module_by_id",
     dependencies=[Depends(get_current_user)],
 )
@@ -122,7 +117,7 @@ async def get_sub_module_by_id(
 
 @app.put(
     "/update_sub_module/{sub_module_id}",
-    tags         = ["sub_module"],
+    tags         = ["Sub Module"],
     operation_id = "update_sub_module",
     dependencies = [Depends(get_current_user)],
 )
@@ -145,8 +140,6 @@ async def update_sub_module(
     setattr(item, "model", sub_module.model)
     setattr(item, "ordering", sub_module.ordering)
     setattr(item, "active", sub_module.active)
-    if sub_module.icon and sub_module.icon.filename: 
-        setattr(item, "icon", save_icon(sub_module.icon))
 
     db.commit()
     db.refresh(item)
@@ -163,7 +156,7 @@ async def update_sub_module(
 
 @app.delete(
     "/delete_sub_module/{sub_module_id}",
-    tags         = ["sub_module"],
+    tags         = ["Sub Module"],
     operation_id = "delete_sub_module",
     dependencies = [Depends(get_current_user)],
 )
@@ -178,11 +171,10 @@ async def delete_sub_module(
             detail      = "sub_module not found",
         )
 
-    data = sub_module_response(item)
-    icon = cast(str | None, getattr(item, "icon", None))
-    delete_cloudinary_image(icon)
     db.delete(item)
     db.commit()
+
+    data = sub_module_response(item)
 
     return {
         "ok"     : True,
